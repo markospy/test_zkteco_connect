@@ -11,7 +11,7 @@ class Data(BaseModel):
     content: str
 
 
-app = FastAPI()
+app = FastAPI(docs_url="/")
 
 # Es necesario comprobar si los dispositivos mandan la url /iclock/cdata o sólo cdata (lo mismo pasa con las demás).
 
