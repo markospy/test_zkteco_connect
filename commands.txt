@@ -1,0 +1,1 @@
+C:1:DATA UPDATE USERINFO PIN=999    Name=Pepe Ramirez   Pri=0   Passwd=1111 Card=13375590   Grp=0
