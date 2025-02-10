@@ -4,6 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from uvicorn import run
 
 
 class Data(BaseModel):
@@ -101,3 +102,8 @@ async def confirm_command(
 ):
     print(f"Se ha recibido la confirmacion de la ejecucion del comando enviado: {data.content}")
     return "OK"
+
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))  # Render asigna el puerto a la variable de entorno 'PORT'
+    run(app, host="0.0.0.0", port=port)
