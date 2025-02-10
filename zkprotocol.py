@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 
@@ -14,7 +15,7 @@ app = FastAPI()
 # Es necesario comprobar si los dispositivos mandan la url /iclock/cdata o sólo cdata (lo mismo pasa con las demás).
 
 
-@app.get("/iclock/cdata/")
+@app.get("/iclock/cdata/", response_class=PlainTextResponse)
 async def cdata_endpoint(
     SN: str | None = None,
     type: str | None = None,
@@ -75,7 +76,7 @@ async def real_time(data: Data, SN: str | None = None, table: str | None = None,
 
 
 # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
-@app.get("/iclock/getrequest/")
+@app.get("/iclock/getrequest/", response_class=PlainTextResponse)
 async def exe_command(SN: str | None = None):
     # Obtener path a carpeta del archivo
     path = os.path.dirname(os.path.realpath(__file__))
@@ -87,7 +88,7 @@ async def exe_command(SN: str | None = None):
 
 
 # Esto debe crear un archivo device_info.txt con la información enviada por el dispositivo sobre sí mismo.
-@app.get("/iclock/getrequest/")
+@app.get("/iclock/getrequest/", response_class=PlainTextResponse)
 async def exe_command(data: Data, SN: str = None, info: str = None):
     # Obtener path a carpeta del archivo
     path = os.path.dirname(os.path.realpath(__file__))
