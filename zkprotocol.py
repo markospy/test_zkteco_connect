@@ -32,7 +32,7 @@ async def cdata_endpoint(
         "%02d" % now.minute,
         "%02d" % now.second,
     )
-    print(f"El dispositivo con serie {SN} acaba de lanzar una llamada al endpoint '/cdata/'.")
+    print(f"El dispositivo con serie {SN} acaba de lanzar una llamada a la URI '/iclock/cdata/'.")
     print(f"\ttype: {type}")
     print(f"\toptions: {options}")
     print(f"\tpushver: {pushver}")
@@ -50,7 +50,7 @@ TransTimes=0\n\
 TransInterval=0\n\
 TransFlag=0100000\n\
 Realtime=1\n\
-Encrypt=0\n\
+Encrypt=None\n\
 TimeZone=-05:00\n\
 Timeout=60\n\
 SyncTime=3600\n\
@@ -61,7 +61,7 @@ OPERLOGStamp={timestamp}"
 
 
 # Notificación en tiempo real
-@app.post("/iclock/cdata/")
+@app.post("/iclock/cdata/", response_class=PlainTextResponse)
 async def real_time(data: Data, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
         # Obtener path a carpeta del archivo
@@ -75,36 +75,29 @@ async def real_time(data: Data, SN: str | None = None, table: str | None = None,
     return "OK"
 
 
-# Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
 @app.get("/iclock/getrequest/", response_class=PlainTextResponse)
-async def exe_command(SN: str | None = None):
-    # Obtener path a carpeta del archivo
+async def get_request(SN: str | None = None, INFO: str | None = None, data: str | None = None):
+    if INFO:
+        # En lugar de guardar en un archivo, imprime la información del dispositivo
+        print(f"Información del dispositivo recibida a la URI '/iclock/getrequest/' (BODY): {data}")
+        print(f"Información del dispositivo recibida a la URI '/iclock/getrequest/' (INFO): {data}")
+        return ""
+
+    # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
     path = os.path.dirname(os.path.realpath(__file__))
     result = ""
     with open(path + "/commands.txt", "rt") as f:
         for c in f.readlines():
             result = result + c + "\n"
+    print(f"Enviando comandos {result} al dispositivo...")
     return result
 
 
-# Esto debe crear un archivo device_info.txt con la información enviada por el dispositivo sobre sí mismo.
-@app.get("/iclock/getrequest/", response_class=PlainTextResponse)
-async def exe_command(data: Data, SN: str = None, info: str = None):
-    # Obtener path a carpeta del archivo
-    path = os.path.dirname(os.path.realpath(__file__))
-    with open(path + "/device_info.txt", "xt") as f:  # En Windows cambiar / por \\
-        f.write(data.content + "\n")
-    return ""
-
-
 # Esto debe crear un archivo confirmed.txt con la información de confirmación de ejecución de un comando enviado al dispositivo.
-@app.post("/iclock/devicecmd/")
+@app.post("/iclock/devicecmd/", response_class=PlainTextResponse)
 async def confirm_command(
     data: Data,
     SN: str | None = None,
 ):
-    # Obtener path a carpeta del archivo
-    path = os.path.dirname(os.path.realpath(__file__))
-    with open(path + "/confirmed.txt", "xt") as f:  # En Windows cambiar / por \\
-        f.write(data.content + "\n")
+    print(f"Se ha recibido la confirmacion de la ejecucion del comando enviado: {data.content}")
     return "OK"
