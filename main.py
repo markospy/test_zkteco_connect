@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from uvicorn import run
@@ -13,7 +14,15 @@ class Data(BaseModel):
 
 app = FastAPI(docs_url="/")
 
-# Es necesario comprobar si los dispositivos mandan la url /iclock/cdata o sólo cdata (lo mismo pasa con las demás).
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
@@ -50,18 +59,19 @@ async def cdata_endpoint(
     if type is None:
         # Pedido de datos iniciales de configuración del dispositivo (lo primero cuando se enciende).
         result = f"GET OPTION FROM: {SN}\n\
+OPERLOGStamp={timestamp}\n\
 ErrorDelay=60\n\
 Delay=5\n\
 TransTimes=0\n\
 TransInterval=0\n\
 TransFlag=0100000\n\
+TimeZone=-05:00\n\
 Realtime=1\n\
 Encrypt=None\n\
-TimeZone=-05:00\n\
-Timeout=60\n\
-SyncTime=3600\n\
 ServerVer=0.0.1 2025-02-08\n\
-OPERLOGStamp={timestamp}"
+PushProtVer={pushver}\n\
+PushOptionsFlag={PushOptionsFlag}\n\
+PushOptions=FingerFunOn,FaceFunOn"
         return result
     return None
 
