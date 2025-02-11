@@ -51,7 +51,7 @@ async def cdata_endpoint(
         # Pedido de datos iniciales de configuración del dispositivo (lo primero cuando se enciende).
         result = f"GET OPTION FROM: {SN}\n\
 ErrorDelay=60\n\
-Delay=30\n\
+Delay=5\n\
 TransTimes=0\n\
 TransInterval=0\n\
 TransFlag=0100000\n\
