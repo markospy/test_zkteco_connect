@@ -22,6 +22,8 @@ async def cdata_endpoint(
     type: str | None = None,
     options: str | None = None,
     pushver: str | None = None,
+    DeviceType: str | None = None,
+    PushOptionsFlag: str | None = None,
     language: int | None = None,
 ):
     now = datetime.today()
@@ -37,7 +39,10 @@ async def cdata_endpoint(
     print(f"\ttype: {type}")
     print(f"\toptions: {options}")
     print(f"\tpushver: {pushver}")
+    print(f"\tDeviceType: {DeviceType}")
     print(f"\tlanguage: {language}")
+    print(f"\tPushOptionsFlag: {PushOptionsFlag}")
+
     if type:
         # Pedido de fecha y hora del servidor por parte del dispositivo (lo segundo cuando se enciende).
         return timestamp
