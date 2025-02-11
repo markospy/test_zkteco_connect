@@ -14,7 +14,7 @@ class Data(BaseModel):
 
 app = FastAPI(docs_url="/")
 
-origins = [f"https://100.64.0.{i}:{port}" for i in range(1, 10) for port in range(10000, 99999)]
+origins = [*]
 
 app.add_middleware(
     CORSMiddleware,
