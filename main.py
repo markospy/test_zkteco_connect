@@ -14,7 +14,7 @@ class Data(BaseModel):
 
 app = FastAPI(docs_url="/")
 
-origins = [*]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
