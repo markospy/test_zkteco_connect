@@ -16,7 +16,7 @@ app = FastAPI(docs_url="/")
 # Es necesario comprobar si los dispositivos mandan la url /iclock/cdata o sólo cdata (lo mismo pasa con las demás).
 
 
-@app.get("/iclock/cdata/", response_class=PlainTextResponse)
+@app.get("/iclock/cdata", response_class=PlainTextResponse)
 async def cdata_endpoint(
     SN: str | None = None,
     type: str | None = None,
@@ -67,7 +67,7 @@ OPERLOGStamp={timestamp}"
 
 
 # Notificación en tiempo real
-@app.post("/iclock/cdata/", response_class=PlainTextResponse)
+@app.post("/iclock/cdata", response_class=PlainTextResponse)
 async def real_time(data: Data, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
         # Obtener path a carpeta del archivo
@@ -81,7 +81,7 @@ async def real_time(data: Data, SN: str | None = None, table: str | None = None,
     return "OK"
 
 
-@app.get("/iclock/getrequest/", response_class=PlainTextResponse)
+@app.get("/iclock/getrequest", response_class=PlainTextResponse)
 async def get_request(SN: str | None = None, INFO: str | None = None, data: str | None = None):
     if INFO:
         # En lugar de guardar en un archivo, imprime la información del dispositivo
@@ -100,7 +100,7 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
 
 
 # Esto debe crear un archivo confirmed.txt con la información de confirmación de ejecución de un comando enviado al dispositivo.
-@app.post("/iclock/devicecmd/", response_class=PlainTextResponse)
+@app.post("/iclock/devicecmd", response_class=PlainTextResponse)
 async def confirm_command(
     data: Data,
     SN: str | None = None,
