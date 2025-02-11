@@ -14,7 +14,17 @@ class Data(BaseModel):
 
 app = FastAPI(docs_url="/")
 
-origins = ["100.64.0.4"]
+origins = [
+    "100.64.0.1",
+    "100.64.0.2",
+    "100.64.0.3",
+    "100.64.0.4",
+    "100.64.0.5",
+    "100.64.0.6",
+    "100.64.0.7",
+    "100.64.0.8",
+    "100.64.0.9",
+]
 
 app.add_middleware(
     CORSMiddleware,
