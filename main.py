@@ -9,8 +9,8 @@ from uvicorn import run
 
 
 class Data(BaseModel):
-    FingerFunOn: bool | None = None
-    FaceFunOn: bool | None = None
+    FingerFunOn: int | None = None
+    FaceFunOn: int | None = None
 
 
 app = FastAPI(docs_url="/")
