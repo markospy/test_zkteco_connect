@@ -4,13 +4,18 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from uvicorn import run
 
 
 class Data(BaseModel):
     FingerFunOn: bool | None = None
     FaceFunOn: bool | None = None
+
+
+class DynamicBody(BaseModel):
+    class Config:
+        extra = Extra.allow  # Permite cualquier clave en el JSON
 
 
 app = FastAPI(docs_url="/")
@@ -79,7 +84,7 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 # Notificación en tiempo real
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+async def real_time(data: DynamicBody, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
         # Obtener path a carpeta del archivo
         # path = os.path.dirname(os.path.realpath(__file__))
