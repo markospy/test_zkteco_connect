@@ -9,8 +9,8 @@ from uvicorn import run
 
 
 class Data(BaseModel):
-    FingerFunOn: int | None = None
-    FaceFunOn: int | None = None
+    FingerFunOn: bool | None = None
+    FaceFunOn: bool | None = None
 
 
 app = FastAPI(docs_url="/")
@@ -79,7 +79,7 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 # Notificación en tiempo real
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def real_time(data: Data, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
         # Obtener path a carpeta del archivo
         # path = os.path.dirname(os.path.realpath(__file__))
