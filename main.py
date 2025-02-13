@@ -42,6 +42,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+# Esta es una clase con todas las keys que envie la solicitud que estamos analizando. Mira el email.
 class DeviceData(BaseModel):
     DeviceName: str
     MAC: str
@@ -87,22 +88,6 @@ class DeviceData(BaseModel):
     IsSupportQRcode: str | None
     QRCodeEnable: str | None
     SubcontractingUpgradeFunOn: int
-
-
-# @app.post("/iclock/cdata", response_class=PlainTextResponse)
-# async def receive_data(request: Request):
-#     body = await request.body()
-#     body_str = body.decode("utf-8")
-
-#     # Parse the URL-encoded string into a dictionary
-#     data = {}
-#     for pair in body_str.split(","):
-#         key, value = pair.split("=")
-#         data[key.strip("~")] = value
-
-#     print({"message": "Data received", "data": data})
-
-#     return "OK"
 
 
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
@@ -177,9 +162,11 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 # Notificación en tiempo real
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def real_time(data: DeviceData, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+async def real_time(request: Request, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
-    print(f"\tMensaje recibido: {data.model_dump()}")
+    body = await request.body()
+    body_str = body.decode("utf-8")
+    print(f"\tMensaje recibido: {body_str}")
     return "OK"
 
 
