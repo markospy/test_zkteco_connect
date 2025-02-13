@@ -181,6 +181,8 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
     with open(path + "/commands.txt", "rt") as f:
         for c in f.readlines():
             result = result + c + "\n"
+    if len(result) == 0:
+        print("No hay comandos para enviar al dispositivo...")
     print(f"Enviando comandos {result} al dispositivo...")
     return result
 
@@ -212,6 +214,7 @@ class UserInfo(BaseModel):
 
 @app.post("/send-command")
 async def update_user(info: UserInfo):
+    """Enviar un comando al servidor, que lo enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
     # Si openDoor es True, sobrescribir el archivo con el comando de desbloqueo
     if info.openDoor:
         command = "C:1:AC_UNLOCK"
@@ -230,6 +233,23 @@ async def update_user(info: UserInfo):
     with open(path + "/commands.txt", "w") as f:
         f.write(command)
     return {"mensaje": "Comando actualizado correctamente", "comando": command}
+
+
+@app.post("/clear-commands")
+async def clear_commands():
+    """Eliminar todos los comandos."""
+    # Obtener la ruta del archivo commands.txt
+    path = os.path.dirname(os.path.realpath(__file__))
+    file_path = os.path.join(path, "commands.txt")
+
+    try:
+        # Abrir el archivo en modo escritura para vaciarlo
+        with open(file_path, "w") as f:
+            f.write("")  # Escribir una cadena vacía
+        return {"mensaje": "El archivo commands.txt ha sido vaciado correctamente"}
+    except Exception as e:
+        # Manejar errores (por ejemplo, si el archivo no existe o no se puede escribir)
+        raise HTTPException(status_code=500, detail=f"Error al vaciar el archivo: {str(e)}")
 
 
 if __name__ == "__main__":

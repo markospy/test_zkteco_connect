@@ -1,1 +1,0 @@
-C:1:DATA UPDATE USERINFO PIN=73	Name=Carlos Alberto	Pri=0	Passwd=alberto	Card=9898989898	Grp=1	TZ=0000000000000000	Verify=6	ViceCard=1234554321	StartDate=0220	EndDate=1010
