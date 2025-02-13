@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
@@ -98,13 +98,7 @@ async def receive_data(request: Request):
         key, value = pair.split("=")
         data[key.strip("~")] = value
 
-    # Validate and parse the data using Pydantic
-    try:
-        device_data = DeviceData(**data)
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
-
-    print({"message": "Data received", "data": device_data})
+    print({"message": "Data received", "data": data})
 
     return "OK"
 
@@ -181,16 +175,9 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 # Notificación en tiempo real
 # @app.post("/iclock/cdata", response_class=PlainTextResponse)
-# async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
-#     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
-#         # Obtener path a carpeta del archivo
-#         # path = os.path.dirname(os.path.realpath(__file__))
-#         # with open(path + "/operlog.txt", "xt") as f:  # En Windows cambiar / por \\
-#         #     f.write(data.content + "\n")
-#         print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
-#         print(f"\ttable: {table}")
-#         print(f"\tStamp: {Stamp}")
-#         print(f"\tMensaje recibido: {data.content}")
+# async def real_time(data: DeviceData, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+#     print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
+#     print(f"\tMensaje recibido: {data.model_dump()}")
 #     return "OK"
 
 
