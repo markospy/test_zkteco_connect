@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -178,7 +178,7 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
     # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
     path = os.path.dirname(os.path.realpath(__file__))
     result = ""
-    with open(path + "/opendoor.txt", "rt") as f:
+    with open(path + "/commands.txt", "rt") as f:
         for c in f.readlines():
             result = result + c + "\n"
     print(f"Enviando comandos {result} al dispositivo...")
@@ -196,6 +196,40 @@ async def confirm_command(
     body_str = body.decode("utf-8")
     print(f"\tMensaje recibido: {body_str}")
     return "OK"
+
+
+class UserInfo(BaseModel):
+    pin: str | None = None
+    name: str | None = None
+    pri: str | None = None
+    passwd: str | None = None
+    card: str | None = None
+    viceCard: str | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+    openDoor: bool | None = False
+
+
+@app.post("/send-command")
+async def update_user(info: UserInfo):
+    # Si openDoor es True, sobrescribir el archivo con el comando de desbloqueo
+    if info.openDoor:
+        command = "C:1:AC_UNLOCK"
+    else:
+        # Validar que los campos obligatorios estén presentes si openDoor es False
+        if not all(
+            [info.pin, info.name, info.pri, info.passwd, info.card, info.viceCard, info.startDate, info.endDate]
+        ):
+            raise HTTPException(status_code=400, detail="Faltan campos obligatorios cuando openDoor es False")
+
+        # Crear el comando con los datos proporcionados
+        command = f"C:1:DATA UPDATE USERINFO PIN={info.pin}\tName={info.name}\tPri={info.pri}\tPasswd={info.passwd}\tCard={info.card}\tGrp=1\tTZ=0000000000000000\tVerify=6\tViceCard={info.viceCard}\tStartDate={info.startDate}\tEndDate={info.endDate}"
+
+    # Sobrescribir el archivo command.txt
+    path = os.path.dirname(os.path.realpath(__file__))
+    with open(path + "/commands.txt", "w") as f:
+        f.write(command)
+    return {"mensaje": "Comando actualizado correctamente", "comando": command}
 
 
 if __name__ == "__main__":
