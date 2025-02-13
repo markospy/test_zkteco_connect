@@ -1,24 +1,11 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel
 from uvicorn import run
-
-
-class Data(BaseModel):
-    FingerFunOn: bool | None = None
-    FaceFunOn: bool | None = None
-
-
-# Esta clase la use para tipar el body del post en la ruta /iclock/cdata pero no funciono.
-# Acuerdate q el error q devuelve este endpoint es un 422, por lo que es un error de validacion.
-# class DynamicBody(BaseModel):
-#     class Config:
-#         extra = Extra.allow  # Permite cualquier clave en el JSON
-
 
 app = FastAPI(docs_url="/")
 
@@ -38,12 +25,27 @@ app.add_middleware(
 # los equipos los mandas y al parecer hay enviarlos en el cuerpo de la respuesta inicial
 # El manual dice esto "Host header field: ${Required}" pero no se si se refiere a un body pq
 # no aparece en la uri de la primera peticion.
+
+
+# Esto segun  chatgpt mostraba el body, pero no lo hace
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "body": request.json(),
+        },
+    )
+
+
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
 async def cdata_endpoint(
     SN: str | None = None,
     type: str | None = None,
     options: str | None = None,
-    pushver: str | None = None,  # se necesite para mandar en la respuesta como valor de PushProtVer
+    pushver: str | None = None,  # puede q se necesite mandar en la respuesta como valor de PushProtVer
     PushOptionsFlag: str | None = None,  # lo mismo q el anterior
 ):
     now = datetime.today()
@@ -112,6 +114,10 @@ PushOptions=FingerFunOn,FaceFunOn"
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
 async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
+        # Obtener path a carpeta del archivo
+        # path = os.path.dirname(os.path.realpath(__file__))
+        # with open(path + "/operlog.txt", "xt") as f:  # En Windows cambiar / por \\
+        #     f.write(data.content + "\n")
         print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
         print(f"\ttable: {table}")
         print(f"\tStamp: {Stamp}")
@@ -140,7 +146,7 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
 # Esto debe crear un archivo confirmed.txt con la información de confirmación de ejecución de un comando enviado al dispositivo.
 @app.post("/iclock/devicecmd", response_class=PlainTextResponse)
 async def confirm_command(
-    data: Data,
+    data: dict,
     SN: str | None = None,
 ):
     print(f"Se ha recibido la confirmacion de la ejecucion del comando enviado: {data.content}")
