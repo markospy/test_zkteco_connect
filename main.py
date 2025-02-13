@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
@@ -29,16 +30,16 @@ app.add_middleware(
 
 # Esto segun  chatgpt mostraba el body, pero no lo hace. Bueno, probe ahora en el servidor real y si funciono.
 # mando el body por correo.
-# @app.exception_handler(RequestValidationError)
-# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
 
-#     return JSONResponse(
-#         status_code=422,
-#         content={
-#             "detail": exc.errors(),
-#             "body": request.json(),
-#         },
-#     )
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "body": request.json(),
+        },
+    )
 
 
 class DeviceData(BaseModel):
