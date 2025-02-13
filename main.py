@@ -183,6 +183,7 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
             result = result + c + "\n"
     if len(result) == 0:
         print("No hay comandos para enviar al dispositivo...")
+        return result
     print(f"Enviando comandos {result} al dispositivo...")
     return result
 
