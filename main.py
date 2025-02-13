@@ -188,10 +188,13 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
 # Esto debe crear un archivo confirmed.txt con la información de confirmación de ejecución de un comando enviado al dispositivo.
 @app.post("/iclock/devicecmd", response_class=PlainTextResponse)
 async def confirm_command(
-    data: dict,
+    request: Request,
     SN: str | None = None,
 ):
-    print(f"Se ha recibido la confirmacion de la ejecucion del comando enviado: {data.content}")
+    print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
+    body = await request.body()
+    body_str = body.decode("utf-8")
+    print(f"\tMensaje recibido: {body_str}")
     return "OK"
 
 
