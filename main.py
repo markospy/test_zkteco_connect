@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
@@ -27,7 +27,8 @@ app.add_middleware(
 # no aparece en la uri de la primera peticion.
 
 
-# Esto segun  chatgpt mostraba el body, pero no lo hace
+# Esto segun  chatgpt mostraba el body, pero no lo hace. Bueno, probe ahora en el servidor real y si funciono.
+# mando el body por correo.
 # @app.exception_handler(RequestValidationError)
 # async def validation_exception_handler(request: Request, exc: RequestValidationError):
 
@@ -87,20 +88,20 @@ class DeviceData(BaseModel):
     SubcontractingUpgradeFunOn: int
 
 
-@app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def receive_data(request: Request):
-    body = await request.body()
-    body_str = body.decode("utf-8")
+# @app.post("/iclock/cdata", response_class=PlainTextResponse)
+# async def receive_data(request: Request):
+#     body = await request.body()
+#     body_str = body.decode("utf-8")
 
-    # Parse the URL-encoded string into a dictionary
-    data = {}
-    for pair in body_str.split(","):
-        key, value = pair.split("=")
-        data[key.strip("~")] = value
+#     # Parse the URL-encoded string into a dictionary
+#     data = {}
+#     for pair in body_str.split(","):
+#         key, value = pair.split("=")
+#         data[key.strip("~")] = value
 
-    print({"message": "Data received", "data": data})
+#     print({"message": "Data received", "data": data})
 
-    return "OK"
+#     return "OK"
 
 
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
@@ -174,11 +175,11 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 
 # Notificación en tiempo real
-# @app.post("/iclock/cdata", response_class=PlainTextResponse)
-# async def real_time(data: DeviceData, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
-#     print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
-#     print(f"\tMensaje recibido: {data.model_dump()}")
-#     return "OK"
+@app.post("/iclock/cdata", response_class=PlainTextResponse)
+async def real_time(data: DeviceData, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+    print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
+    print(f"\tMensaje recibido: {data.model_dump()}")
+    return "OK"
 
 
 @app.get("/iclock/getrequest", response_class=PlainTextResponse)
