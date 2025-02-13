@@ -1,1 +1,1 @@
-C:1:DATA UPDATE USERINFO PIN=999    Name=Pepe Ramirez   Pri=0   Passwd=1111 Card=13375590   Grp=0
+C:1:DATA UPDATE USERINFO PIN=69\tName=Pepe\tRamirez\tPri=0\tPasswd=1111\tCard=13375590\tGrp=1

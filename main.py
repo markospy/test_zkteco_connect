@@ -173,10 +173,7 @@ async def real_time(request: Request, SN: str | None = None, table: str | None =
 @app.get("/iclock/getrequest", response_class=PlainTextResponse)
 async def get_request(SN: str | None = None, INFO: str | None = None, data: str | None = None):
     if INFO:
-        # En lugar de guardar en un archivo, imprime la información del dispositivo
-        print(f"Información del dispositivo recibida a la URI '/iclock/getrequest/' (BODY): {data}")
-        print(f"Información del dispositivo recibida a la URI '/iclock/getrequest/' (INFO): {data}")
-        return ""
+        return "OK"
 
     # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
     path = os.path.dirname(os.path.realpath(__file__))
