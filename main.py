@@ -1,10 +1,11 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
+from pydantic import BaseModel
 from uvicorn import run
 
 app = FastAPI(docs_url="/")
@@ -38,6 +39,75 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "body": request.json(),
         },
     )
+
+
+class DeviceData(BaseModel):
+    DeviceName: str
+    MAC: str
+    TransactionCount: int
+    MaxAttLogCount: int
+    UserCount: int
+    MaxUserCount: int
+    PhotoFunOn: int
+    MaxUserPhotoCount: int
+    FingerFunOn: int
+    FPVersion: int
+    MaxFingerCount: int
+    FPCount: int
+    FaceFunOn: int
+    FaceVersion: int
+    MaxFaceCount: int
+    FaceCount: int
+    FvFunOn: int
+    FvVersion: int
+    MaxFvCount: int
+    FvCount: int
+    PvFunOn: int | None
+    PvVersion: str | None
+    MaxPvCount: int | None
+    PvCount: int
+    Language: int
+    IPAddress: str
+    Platform: str
+    OEMVendor: str
+    FWVersion: str
+    PushVersion: str
+    RegDeviceType: int
+    VisilightFun: str | None
+    MultiBioDataSupport: str | None
+    MultiBioPhotoSupport: str | None
+    IRTempDetectionFunOn: str | None
+    MaskDetectionFunOn: str | None
+    UserPicURLFunOn: int
+    VisualIntercomFunOn: str | None
+    VideoTID: str | None
+    QRCodeDecryptFunList: str | None
+    VideoProtocol: str | None
+    IsSupportQRcode: str | None
+    QRCodeEnable: str | None
+    SubcontractingUpgradeFunOn: int
+
+
+@app.post("/iclock/cdata", response_class=PlainTextResponse)
+async def receive_data(request: Request):
+    body = await request.body()
+    body_str = body.decode("utf-8")
+
+    # Parse the URL-encoded string into a dictionary
+    data = {}
+    for pair in body_str.split(","):
+        key, value = pair.split("=")
+        data[key.strip("~")] = value
+
+    # Validate and parse the data using Pydantic
+    try:
+        device_data = DeviceData(**data)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    print({"message": "Data received", "data": device_data})
+
+    return "OK"
 
 
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
@@ -111,18 +181,18 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 
 # Notificación en tiempo real
-@app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
-    if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
-        # Obtener path a carpeta del archivo
-        # path = os.path.dirname(os.path.realpath(__file__))
-        # with open(path + "/operlog.txt", "xt") as f:  # En Windows cambiar / por \\
-        #     f.write(data.content + "\n")
-        print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
-        print(f"\ttable: {table}")
-        print(f"\tStamp: {Stamp}")
-        print(f"\tMensaje recibido: {data.content}")
-    return "OK"
+# @app.post("/iclock/cdata", response_class=PlainTextResponse)
+# async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+#     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
+#         # Obtener path a carpeta del archivo
+#         # path = os.path.dirname(os.path.realpath(__file__))
+#         # with open(path + "/operlog.txt", "xt") as f:  # En Windows cambiar / por \\
+#         #     f.write(data.content + "\n")
+#         print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
+#         print(f"\ttable: {table}")
+#         print(f"\tStamp: {Stamp}")
+#         print(f"\tMensaje recibido: {data.content}")
+#     return "OK"
 
 
 @app.get("/iclock/getrequest", response_class=PlainTextResponse)
