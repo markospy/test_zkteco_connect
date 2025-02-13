@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
 from uvicorn import run
 
 
@@ -13,9 +13,11 @@ class Data(BaseModel):
     FaceFunOn: bool | None = None
 
 
-class DynamicBody(BaseModel):
-    class Config:
-        extra = Extra.allow  # Permite cualquier clave en el JSON
+# Esta clase la use para tipar el body del post en la ruta /iclock/cdata pero no funciono.
+# Acuerdate q el error q devuelve este endpoint es un 422, por lo que es un error de validacion.
+# class DynamicBody(BaseModel):
+#     class Config:
+#         extra = Extra.allow  # Permite cualquier clave en el JSON
 
 
 app = FastAPI(docs_url="/")
@@ -108,7 +110,7 @@ PushOptions=FingerFunOn,FaceFunOn"
 
 # Notificación en tiempo real
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
-async def real_time(data: DynamicBody, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
+async def real_time(data: dict, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
         print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
         print(f"\ttable: {table}")
