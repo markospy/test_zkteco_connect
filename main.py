@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uvicorn import run
 
 app = FastAPI(docs_url="/")
@@ -199,15 +199,15 @@ async def confirm_command(
 
 
 class UserInfo(BaseModel):
-    pin: str | None = None
-    name: str | None = None
-    pri: str | None = None
-    passwd: str | None = None
-    card: str | None = None
-    viceCard: str | None = None
-    startDate: str | None = None
-    endDate: str | None = None
-    openDoor: bool | None = False
+    pin: str | None = Field(default=None, description="Id del usuario")
+    name: str | None = Field(default=None, description="Nombre del usuario")
+    pri: str | None = Field(default=0, description="Permiso del usuario, 0 para usuario normal")
+    passwd: str | None = Field(default=None, description="Contraseña del usuario")
+    card: str | None = Field(default=None, description="Card del usuario")
+    viceCard: str | None = Field(default=None, description="Tarjeta visa del usuario")
+    startDate: str | None = Field(default=None, description="Fecha de inicio")
+    endDate: str | None = Field(default=None, description="Fecha de fin")
+    openDoor: bool | None = Field(default=False, description="Abri puerta. true para abrir.")
 
 
 @app.post("/send-command")
