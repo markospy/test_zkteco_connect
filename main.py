@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Extra
 from uvicorn import run
 
@@ -31,15 +31,18 @@ app.add_middleware(
 )
 
 
+# Pedro, quite algunos de los parametros que dice el manual que son opcionales
+# para ganar en simplicidad. Deje otros, q si bien no se especifican en el manual
+# los equipos los mandas y al parecer hay enviarlos en el cuerpo de la respuesta inicial
+# El manual dice esto "Host header field: ${Required}" pero no se si se refiere a un body pq
+# no aparece en la uri de la primera peticion.
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
 async def cdata_endpoint(
     SN: str | None = None,
     type: str | None = None,
     options: str | None = None,
-    pushver: str | None = None,
-    DeviceType: str | None = None,
-    PushOptionsFlag: str | None = None,
-    language: int | None = None,
+    pushver: str | None = None,  # se necesite para mandar en la respuesta como valor de PushProtVer
+    PushOptionsFlag: str | None = None,  # lo mismo q el anterior
 ):
     now = datetime.today()
     timestamp = "{}-{}-{}T{}:{}:{}-05:00".format(
@@ -51,12 +54,6 @@ async def cdata_endpoint(
         "%02d" % now.second,
     )
     print(f"El dispositivo con serie {SN} acaba de lanzar una llamada a la URI '/iclock/cdata/'.")
-    print(f"\ttype: {type}")
-    print(f"\toptions: {options}")
-    print(f"\tpushver: {pushver}")
-    print(f"\tDeviceType: {DeviceType}")
-    print(f"\tlanguage: {language}")
-    print(f"\tPushOptionsFlag: {PushOptionsFlag}")
 
     if type:
         # Pedido de fecha y hora del servidor por parte del dispositivo (lo segundo cuando se enciende).
@@ -64,32 +61,55 @@ async def cdata_endpoint(
 
     if type is None:
         # Pedido de datos iniciales de configuración del dispositivo (lo primero cuando se enciende).
+        # no entiendo pq el manual pone OPERLOGStamp=9999
+        # es TransFlag=100000000000 pq queremo enviar todos los registro de asistencia
+        # no las asistencias por foto q es el 3. Asi es en el formato I
+        # "Only format II needs to be supported". No se si refiere a q es obligatorio el formato II
+        # TimeZone es para definir la zona horaria del servidor. Eso tendria q revisarlo aunq no creo
+        # q sea algo indispensable para hacer los test
         result = f"GET OPTION FROM: {SN}\n\
-OPERLOGStamp={timestamp}\n\
-ErrorDelay=60\n\
+OPERLOGStamp=9999\n\
+ErrorDelay=30\n\
 Delay=5\n\
-TransTimes=0\n\
-TransInterval=0\n\
-TransFlag=0100000\n\
+TransTimes=00: 00\n\
+TransInterval=1\n\
+TransFlag=100000000000\n\
 TimeZone=-05:00\n\
 Realtime=1\n\
 Encrypt=None\n\
-ServerVer=0.0.1 2025-02-08\n\
+ServerVer=2.2.14 2025-02-08\n\
 PushProtVer={pushver}\n\
 PushOptionsFlag={PushOptionsFlag}\n\
 PushOptions=FingerFunOn,FaceFunOn"
-        return result
+
+        now = datetime.now()  # Get the current UTC time
+        timestamp = now.strftime("%a, %d %b %Y %H:%M:%S GMT")  # 'Wed, 12 Feb 2025 22:05:59 GMT'
+
+        return JSONResponse(content=result, media_type="text/plain")  # la cabezera Date se envia por defecto
     return None
+
+
+# Ejemplo de request y response en la api en primera llamada:
+# Request:
+# curl -X 'GET' \
+#   'http://127.0.0.1:8000/iclock/cdata?SN=565645457474&options=all&pushver=2.4.1&PushOptionsFlag=1' \
+#   -H 'accept: text/plain'
+
+# Response:
+# Status code: 200
+# HEADER:
+#  content-length: 279
+#  content-type: text/plain; charset=utf-8
+#  date: Thu,13 Feb 2025 03:37:27 GMT
+#  server: uvicorn
+# BODY:
+# "GET OPTION FROM: 565645457474\nOPERLOGStamp=9999\nErrorDelay=30\nDelay=5\nTransTimes=00: 00\nTransInterval=1\nTransFlag=100000000000\nTimeZone=-05:00\nRealtime=1\nEncrypt=None\nServerVer=2.2.14 2025-02-08\nPushProtVer=2.4.1\nPushOptionsFlag=1\nPushOptions=FingerFunOn,FaceFunOn"
 
 
 # Notificación en tiempo real
 @app.post("/iclock/cdata", response_class=PlainTextResponse)
 async def real_time(data: DynamicBody, SN: str | None = None, table: str | None = None, Stamp: str | None = None):
     if table == "OPERLOG":  # Operaciones efectuadas en tiempo real
-        # Obtener path a carpeta del archivo
-        # path = os.path.dirname(os.path.realpath(__file__))
-        # with open(path + "/operlog.txt", "xt") as f:  # En Windows cambiar / por \\
-        #     f.write(data.content + "\n")
         print(f"Se ha recibido una notificacion en tiempo real del dispositivo con serie {SN}")
         print(f"\ttable: {table}")
         print(f"\tStamp: {Stamp}")
