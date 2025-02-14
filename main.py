@@ -178,9 +178,10 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
     # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
     path = os.path.dirname(os.path.realpath(__file__))
     result = ""
-    with open(path + "/commands.txt", "rt") as f:
+    with open(path + "/commands.txt", "w+") as f:
         for c in f.readlines():
             result = result + c + "\n"
+            f.write("")
     if len(result) == 0:
         print("No hay comandos para enviar al dispositivo...")
         return result
