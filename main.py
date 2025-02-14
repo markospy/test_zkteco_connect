@@ -143,6 +143,7 @@ TransFlag=100000000000\n\
 TimeZone=08:00\n\
 Realtime=1\n\
 Encrypt=None\n\
+SyncTime=10\n\
 ServerVer=2.2.14 2025-02-08\n\
 PushProtVer={pushver}\n\
 PushOptionsFlag={PushOptionsFlag}\n\
