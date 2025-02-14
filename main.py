@@ -42,7 +42,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-# Esta es una clase con todas las keys que envie la solicitud que estamos analizando. Mira el email.
+# Esta es una clase con todas las keys que envie la solicitud que estamos analizando.
+# No la uso en el codigo pero la dejare ahi por si hace falta en el futuro cuando haga la integracion.
 class DeviceData(BaseModel):
     DeviceName: str
     MAC: str
@@ -88,6 +89,17 @@ class DeviceData(BaseModel):
     IsSupportQRcode: str | None
     QRCodeEnable: str | None
     SubcontractingUpgradeFunOn: int
+
+
+class UserInfo(BaseModel):
+    pin: str | None = Field(default=None, description="Id del usuario")
+    name: str | None = Field(default=None, description="Nombre del usuario")
+    pri: str | None = Field(default=0, description="Permiso del usuario, 0 para usuario normal")
+    passwd: str | None = Field(default=None, description="Contraseña del usuario")
+    card: str | None = Field(default=None, description="Card del usuario")
+    viceCard: str | None = Field(default=None, description="Tarjeta visa del usuario")
+    startDate: str | None = Field(default=None, description="Fecha de inicio")
+    endDate: str | None = Field(default=None, description="Fecha de fin")
 
 
 @app.get("/iclock/cdata", response_class=PlainTextResponse)
@@ -178,7 +190,7 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
     # Esto debe leer comandos del archivo commands.txt y mandarlos al dispositivo para su ejecución.
     path = os.path.dirname(os.path.realpath(__file__))
     result = ""
-    with open(path + "/commands.txt", "w+") as f:
+    with open(path + "/commands.txt", "r+") as f:
         for c in f.readlines():
             result = result + c + "\n"
             f.write("")
@@ -202,20 +214,9 @@ async def confirm_command(
     return "OK"
 
 
-class UserInfo(BaseModel):
-    pin: str | None = Field(default=None, description="Id del usuario")
-    name: str | None = Field(default=None, description="Nombre del usuario")
-    pri: str | None = Field(default=0, description="Permiso del usuario, 0 para usuario normal")
-    passwd: str | None = Field(default=None, description="Contraseña del usuario")
-    card: str | None = Field(default=None, description="Card del usuario")
-    viceCard: str | None = Field(default=None, description="Tarjeta visa del usuario")
-    startDate: str | None = Field(default=None, description="Fecha de inicio")
-    endDate: str | None = Field(default=None, description="Fecha de fin")
-
-
 @app.post("/open-door")
 async def open_door(openDoor: bool | None = False):
-    """Enviar un comando al servidor, que lo enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
+    """Enviar un comando de abrir puerta. Se enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
     if openDoor:
         command = "C:1:AC_UNLOCK"
 
@@ -228,13 +229,26 @@ async def open_door(openDoor: bool | None = False):
 
 @app.post("/add-user")
 async def add_user(info: UserInfo):
-    """Enviar un comando al servidor, que lo enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
+    """Enviar un comando con los datos del usuario. Se enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
     # Validar que los campos obligatorios estén presentes si openDoor es False
     if not all([info.pin, info.name, info.pri, info.passwd, info.card, info.viceCard, info.startDate, info.endDate]):
         raise HTTPException(status_code=400, detail="Faltan campos obligatorios cuando openDoor es False")
 
     # Crear el comando con los datos proporcionados
     command = f"C:1:DATA UPDATE USERINFO PIN={info.pin}\tName={info.name}\tPri={info.pri}\tPasswd={info.passwd}\tCard={info.card}\tGrp=1\tTZ=0000000000000000\tVerify=6\tViceCard={info.viceCard}\tStartDate={info.startDate}\tEndDate={info.endDate}"
+
+    # Sobrescribir el archivo command.txt
+    path = os.path.dirname(os.path.realpath(__file__))
+    with open(path + "/commands.txt", "w") as f:
+        f.write(command)
+    return {"mensaje": "Comando actualizado correctamente", "comando": command}
+
+
+@app.post("/reebot-client")
+async def reebot_client(reebot: bool | None = False):
+    """Reinicia el cliente (zkteco) para volver a cargar las configuraciones iniciales del servidor"""
+    if reebot:
+        command = "C:1:REBOOT"
 
     # Sobrescribir el archivo command.txt
     path = os.path.dirname(os.path.realpath(__file__))
