@@ -123,6 +123,7 @@ async def cdata_endpoint(
 
     if type:
         # Pedido de fecha y hora del servidor por parte del dispositivo (lo segundo cuando se enciende).
+        print(f"El dispositivo con serie {SN} ha pedido la hora del servidor")
         return timestamp
 
     if type is None:
@@ -148,9 +149,6 @@ ServerVer=2.2.14 2025-02-08\n\
 PushProtVer={pushver}\n\
 PushOptionsFlag={PushOptionsFlag}\n\
 PushOptions=FingerFunOn,FaceFunOn"
-
-        now = datetime.now()  # Get the current UTC time
-        timestamp = now.strftime("%a, %d %b %Y %H:%M:%S GMT")  # 'Wed, 12 Feb 2025 22:05:59 GMT'
 
         return JSONResponse(content=result, media_type="text/plain")  # la cabezera Date se envia por defecto
     return None
