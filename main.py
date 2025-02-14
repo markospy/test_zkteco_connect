@@ -194,7 +194,8 @@ async def get_request(SN: str | None = None, INFO: str | None = None, data: str 
     with open(path + "/commands.txt", "r+") as f:
         for c in f.readlines():
             result = result + c + "\n"
-        f.write("")
+    with open(path + "/commands.txt", "w") as f:
+        f.write("")  # Escribir una cadena vacía
     if len(result) == 0:
         print("No hay comandos para enviar al dispositivo...")
         return result
