@@ -128,7 +128,7 @@ Delay=5\n\
 TransTimes=00: 00\n\
 TransInterval=1\n\
 TransFlag=100000000000\n\
-TimeZone=-05:00\n\
+TimeZone=08:00\n\
 Realtime=1\n\
 Encrypt=None\n\
 ServerVer=2.2.14 2025-02-08\n\
@@ -210,24 +210,30 @@ class UserInfo(BaseModel):
     viceCard: str | None = Field(default=None, description="Tarjeta visa del usuario")
     startDate: str | None = Field(default=None, description="Fecha de inicio")
     endDate: str | None = Field(default=None, description="Fecha de fin")
-    openDoor: bool | None = Field(default=False, description="Abri puerta. true para abrir.")
 
 
-@app.post("/send-command")
-async def update_user(info: UserInfo):
+@app.post("/open-door")
+async def open_door(openDoor: bool | None = False):
     """Enviar un comando al servidor, que lo enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
-    # Si openDoor es True, sobrescribir el archivo con el comando de desbloqueo
-    if info.openDoor:
+    if openDoor:
         command = "C:1:AC_UNLOCK"
-    else:
-        # Validar que los campos obligatorios estén presentes si openDoor es False
-        if not all(
-            [info.pin, info.name, info.pri, info.passwd, info.card, info.viceCard, info.startDate, info.endDate]
-        ):
-            raise HTTPException(status_code=400, detail="Faltan campos obligatorios cuando openDoor es False")
 
-        # Crear el comando con los datos proporcionados
-        command = f"C:1:DATA UPDATE USERINFO PIN={info.pin}\tName={info.name}\tPri={info.pri}\tPasswd={info.passwd}\tCard={info.card}\tGrp=1\tTZ=0000000000000000\tVerify=6\tViceCard={info.viceCard}\tStartDate={info.startDate}\tEndDate={info.endDate}"
+    # Sobrescribir el archivo command.txt
+    path = os.path.dirname(os.path.realpath(__file__))
+    with open(path + "/commands.txt", "w") as f:
+        f.write(command)
+    return {"mensaje": "Comando actualizado correctamente", "comando": command}
+
+
+@app.post("/add-user")
+async def add_user(info: UserInfo):
+    """Enviar un comando al servidor, que lo enviara al equipo en cuanto este lo solicite (cada 5 segundos)"""
+    # Validar que los campos obligatorios estén presentes si openDoor es False
+    if not all([info.pin, info.name, info.pri, info.passwd, info.card, info.viceCard, info.startDate, info.endDate]):
+        raise HTTPException(status_code=400, detail="Faltan campos obligatorios cuando openDoor es False")
+
+    # Crear el comando con los datos proporcionados
+    command = f"C:1:DATA UPDATE USERINFO PIN={info.pin}\tName={info.name}\tPri={info.pri}\tPasswd={info.passwd}\tCard={info.card}\tGrp=1\tTZ=0000000000000000\tVerify=6\tViceCard={info.viceCard}\tStartDate={info.startDate}\tEndDate={info.endDate}"
 
     # Sobrescribir el archivo command.txt
     path = os.path.dirname(os.path.realpath(__file__))
